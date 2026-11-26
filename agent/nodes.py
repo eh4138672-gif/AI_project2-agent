@@ -20,7 +20,7 @@ MAX_ATTEMPTS = 3
 
 def get_llm():
     return ChatGoogleGenerativeAI(
-        model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+        model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
         temperature=0,
     )
 

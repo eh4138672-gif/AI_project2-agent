@@ -1,5 +1,6 @@
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import RetryPolicy
 
 from agent.nodes import (
     check_draft,
@@ -18,9 +19,11 @@ def build_graph(checkpointer=None):
     builder = StateGraph(EmailState)
 
     builder.add_node("fetch_email", fetch_email)
-    builder.add_node("classify", classify)
-    builder.add_node("draft_reply", draft_reply)
-    builder.add_node("check_draft", check_draft)
+    # nodes that call Gemini: retry on network errors (e.g. a filter dropping the connection)
+    llm_retry = RetryPolicy(max_attempts=4, initial_interval=5, retry_on=Exception)
+    builder.add_node("classify", classify, retry_policy=llm_retry)
+    builder.add_node("draft_reply", draft_reply, retry_policy=llm_retry)
+    builder.add_node("check_draft", check_draft, retry_policy=llm_retry)
     builder.add_node("human_review", human_review)
     builder.add_node("send_email", send_email)
 
